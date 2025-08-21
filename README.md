@@ -18,6 +18,30 @@ It is not intended for production use, but rather to showcase clean code structu
 
 ---
 
+## 📚 Educational Focus
+
+This project demonstrates professional Rust development practices:
+- **Modular Architecture**: Clean separation of concerns across focused modules
+- **Comprehensive Documentation**: Every public function documented for `cargo doc`
+- **Error Handling**: Proper error propagation and user-friendly feedback
+- **CLI Design**: Intuitive command-line interface using `clap`
+- **Security Concepts**: Real-world security tool implementation patterns
+
+### 🔍 Code Structure
+```
+src/
+├── main.rs      # CLI interface and argument parsing
+├── lib.rs       # Library exports for external use
+├── password.rs  # Password analysis and generation
+├── hash.rs      # File hashing with multiple algorithms  
+├── scan.rs      # TCP port scanning functionality
+└── analyse.rs   # File security analysis
+```
+
+> **Educational Disclaimer**: This toolkit demonstrates Rust programming and CLI design patterns. While functional, it's designed for learning rather than production security work.
+
+---
+
 ## Requirements
 - Rust (latest stable) → [Install Rust](https://www.rust-lang.org/tools/install)
 - Linux, macOS, or WSL (Windows)
@@ -72,6 +96,18 @@ Open ports found:
 
 ---
 
+## Documentation
+
+Generate and view the comprehensive API documentation:
+
+```bash
+cargo doc --open
+```
+
+This will create detailed documentation for all modules, functions, and implementation details.
+
+---
+
 ## Roadmap
 
 🔹 Add multi-threaded scanning for speed
@@ -90,7 +126,7 @@ Contributions are welcome!
 
 Feel free to fork this repository, create a feature branch, and open a pull request.
 
-=> For larger changes, please open an issue first to discuss what you’d like to add.
+=> For larger changes, please open an issue first to discuss what you'd like to add.
 
 ---
 

@@ -674,7 +674,6 @@ version = "0.1.0"
 dependencies = [
  "clap",
  "colored",
- "digest",
  "dns-lookup",
  "hex",
  "indicatif",
