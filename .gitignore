@@ -1,15 +1,15 @@
-# Binaries
-/target/
-
-# Rust build artifacts
+# Rust / Cargo
+/target
 **/*.rs.bk
+Cargo.lock
 
-# IDE/project files
+# IDEs
 .idea/
-.vscode/
-*.iml
+/.vscode/
 
-# OS junk
+# Logs
+*.log
+
+# OS-specific
 .DS_Store
 Thumbs.db
-.idea/
