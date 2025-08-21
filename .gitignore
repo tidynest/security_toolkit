@@ -1,17 +1,15 @@
-# Rust / Cargo
+# Binaries
 /target/
 
-# Keep Cargo.lock for reproducibility
-
-# Rust tooling / temporary files
+# Rust build artifacts
 **/*.rs.bk
-*.profraw
-*.profdata
 
-# JetBrains IDE (RustRover, IntelliJ, CLion, etc.)
+# IDE/project files
 .idea/
+.vscode/
+*.iml
 
-# OS-specific
+# OS junk
 .DS_Store
 Thumbs.db
-
+.idea/
