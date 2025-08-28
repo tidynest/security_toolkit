@@ -1,0 +1,11 @@
+# Ensure shell scripts are properly detected
+*.sh linguist-language=Shell
+testing/*.sh linguist-language=Shell
+testing/comprehensive_test.sh linguist-language=Shell
+
+# Make sure Rust files are detected (though this should be automatic)
+*.rs linguist-language=Rust
+
+# Exclude build artifacts and documentation from language statistics
+target/* linguist-generated=true
+target/* linguist-vendored=true
