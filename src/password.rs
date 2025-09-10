@@ -297,3 +297,25 @@ fn humanise_duration(secs: f64) -> String {
 
     format!("{rounded} {unit}")
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_has_repeated_chars() {
+        assert!(has_repeated_chars("aaa123"));
+        assert!(has_repeated_chars("pass111word"));
+        assert!(!has_repeated_chars("abc123"));
+    }
+
+    #[test]
+    fn test_assess_length() {
+        assert!(assess_length(16).to_string().contains("Excellent"));
+        assert!(assess_length(12).to_string().contains("Good"));
+        assert!(assess_length(8).to_string().contains("Fair"));
+        assert!(assess_length(4).to_string().contains("Poor"));
+    }
+
+    // REMOVED the calculate_entropy test - that function is in analyse.rs, not here
+}

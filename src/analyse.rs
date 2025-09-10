@@ -72,7 +72,7 @@ fn display_file_info(file_path: &str, metadata: &fs::Metadata) {
     }
 }
 
-/// analyses text file content for security-sensitive patterns.
+/// Analyses text file content for security-sensitive patterns.
 ///
 /// Scans the file content for patterns that might indicate:
 /// - API keys and tokens
@@ -87,7 +87,6 @@ fn analyse_content_patterns(content: &str) {
     println!("\n{}", "Checking for sensitive data:".bold());
 
     let sensitive_patterns = vec![
-        // Keep the working patterns from main.rs
         (r"(?i)(api[_-]?key|apikey)", "API Key"),
         (r"(?i)(secret[_-]?key|secret)", "Secret Key"),
         (r#"(?i)password\s*=\s*['"]?[^'"]+['"]?"#, "Hardcoded Password"),
@@ -95,8 +94,6 @@ fn analyse_content_patterns(content: &str) {
         (r"(?i)bearer\s+[a-zA-Z0-9\-._~+/]+", "Bearer Token"),
         (r"ssh-rsa\s+[A-Za-z0-9+/]+", "SSH Key"),
         (r"-----BEGIN\s+(RSA\s+)?PRIVATE\s+KEY-----", "Private Key"),
-
-        // Add a few more simple, reliable patterns
         (r"-----BEGIN\s+CERTIFICATE-----", "X.509 Certificate"),
         (r"(?i)(postgres|mysql|mongodb)://", "Database Connection String"),
         (r"(?i)aws_access_key_id", "AWS Access Key"),
@@ -105,7 +102,14 @@ fn analyse_content_patterns(content: &str) {
     let mut found_issues = false;
     
     for (pattern, description) in sensitive_patterns {
-        let re = Regex::new(pattern).unwrap();
+        let re = match Regex::new(pattern) {
+            Ok(regex) => regex,
+            Err(e) => {
+                eprintln!("Warning: Failed to compile pattern for {}: {}", description, e);
+                continue;
+            }
+        };
+
         if re.is_match(content) {
             println!("  ⚠️  Potential {} detected", description.yellow());
             found_issues = true;
@@ -155,7 +159,11 @@ fn check_suspicious_patterns(content: &str, found_issues: &mut bool) {
     ];
 
     for (pattern, description) in suspicious_ops {
-        let re = Regex::new(pattern).unwrap();
+        let re = match Regex::new(pattern) {
+            Ok(regex) => regex,
+            Err(_) => continue,  // Skip invalid patterns silently
+        };
+
         if re.is_match(content) {
             println!("  ⚠️  {}", description.yellow());
             *found_issues = true;
@@ -260,5 +268,38 @@ fn format_file_size(bytes: u64) -> String {
         format!("{} {}", bytes, UNITS[unit_index])
     } else {
         format!("{:.1} {}", size, UNITS[unit_index])
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_calculate_entropy() {
+        let high_entropy = calculate_entropy("Xa9$mP2@kL5!");
+        let low_entropy = calculate_entropy("aaaaaaa");
+        assert!(high_entropy > low_entropy);
+
+        // Test edge cases
+        assert_eq!(calculate_entropy(""), 0.0);
+        assert!(calculate_entropy("abcdefg") > calculate_entropy("aaaaaaa"));
+    }
+
+    #[test]
+    fn test_format_file_size() {
+        assert_eq!(format_file_size(100), "100 B");
+        assert_eq!(format_file_size(1024), "1.0 KB");
+        assert_eq!(format_file_size(1536), "1.5 KB");
+        assert_eq!(format_file_size(1048576), "1.0 MB");
+    }
+
+    #[test]
+    fn test_identify_file_type() {
+        assert_eq!(identify_file_type("test.txt"), "Text file");
+        assert_eq!(identify_file_type("config.json"), "Configuration file (JSON)");
+        assert_eq!(identify_file_type("script.sh"), "Script file");
+        assert_eq!(identify_file_type("key.pem"), "Cryptographic file");
+        assert_eq!(identify_file_type("no_extension"), "Unknown (no extension)");
     }
 }

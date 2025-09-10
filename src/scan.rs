@@ -72,7 +72,6 @@ pub fn network_scan(target: &str, port_range: &str, timeout_ms: u64) {
 /// # Returns
 /// Some(IpAddr) if resolution successful, None if failed
 fn resolve_target(target: &str) -> Option<IpAddr> {
-    // Check if target is already a valid IP address
     match target.parse::<IpAddr>() {
         Ok(ip) => Some(ip),
         Err(_) => {
@@ -80,7 +79,7 @@ fn resolve_target(target: &str) -> Option<IpAddr> {
             print!("Resolving hostname...");
             match lookup_host(target) {
                 Ok(ips) => {
-                    // Prefer IPv4 for compatibility
+                    // Guard: ensure IPv4 address is selected
                     if let Some(ip) = ips.into_iter().find(|ip| ip.is_ipv4()) {
                         println!(" {}", ip.to_string().green());
                         Some(ip)
@@ -112,10 +111,7 @@ fn resolve_target(target: &str) -> Option<IpAddr> {
 /// Vector of port numbers or error for invalid specifications
 ///
 /// # Examples
-/// ```
-/// let ports = parse_port_specification("1-100")?; // [1, 2, ..., 100]
-/// let ports = parse_port_specification("80,443")?; // [80, 443]
-/// ```
+
 fn parse_port_specification(port_spec: &str) -> Result<Vec<u16>, String> {
     if port_spec.contains("-") {
         // Handle range specification (e.g., "1-1000")
@@ -256,4 +252,35 @@ fn display_scan_results(open_ports: &[u16]) {
     println!("\n⚠️  Note: This is a basic TCP connect scan for educational purposes");
     println!("   Real attackers might use stealth techniques to avoid detection");
     println!("{}", "─".repeat(50));
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_parse_port_specification_range() {
+        let result = parse_port_specification("80-85").unwrap();
+        assert_eq!(result, vec![80, 81, 82, 83, 84, 85]);
+    }
+
+    #[test]
+    fn test_parse_port_specification_single() {
+        let result = parse_port_specification("80").unwrap();
+        assert_eq!(result, vec![80]);
+    }
+
+    #[test]
+    fn test_parse_port_specification_list() {
+        let result = parse_port_specification("80,443,8080").unwrap();
+        assert_eq!(result, vec![80, 443, 8080]);
+    }
+
+    #[test]
+    fn test_get_service_name() {
+        assert_eq!(get_service_name(22), "SSH");
+        assert_eq!(get_service_name(80), "HTTP");
+        assert_eq!(get_service_name(443), "HTTPS");
+        assert_eq!(get_service_name(9999), "Unknown");
+    }
 }

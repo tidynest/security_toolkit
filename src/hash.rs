@@ -161,3 +161,22 @@ fn display_results(hash: &str, algorithm: &str, expected: Option<String>) {
 
     println!("{}", "─".repeat(50));
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::io::Write;
+    use tempfile::NamedTempFile;
+
+    #[test]
+    fn test_compute_hash() {
+        let mut file = NamedTempFile::new().unwrap();
+        writeln!(file, "test content").unwrap();
+
+        let pb = ProgressBar::hidden();
+        let mut file_handle = File::open(file.path()).unwrap();
+        let hash = compute_hash::<Sha256>(&mut file_handle, &pb).unwrap();
+
+        assert_eq!(hash.len(), 64); // SHA256 produces 64 hex chars
+    }
+}
