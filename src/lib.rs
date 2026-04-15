@@ -13,7 +13,7 @@ Commenting & error-handling conventions
 - Keep helpers small and pure so unit tests don't need the filesystem/network.
 */
 
-pub mod password;
-pub mod hash;
-pub mod scan;
 pub mod analyse;
+pub mod hash;
+pub mod password;
+pub mod scan;

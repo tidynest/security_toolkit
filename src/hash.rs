@@ -3,15 +3,14 @@
 //! Reads the file in fixed-size chunks to avoid loading large files into memory.
 //! The chunk size is chosen to balance syscalls and cache friendliness.
 
-use sha2::{Sha256, Sha512, Digest};
-use sha3::Sha3_256;
+use colored::*;
+use indicatif::{ProgressBar, ProgressStyle};
 use md5::Md5;
+use sha2::{Digest, Sha256, Sha512};
+use sha3::Sha3_256;
 use std::fs::{File, metadata};
 use std::io::Read;
 use std::path::Path;
-use colored::*;
-use indicatif::{ProgressBar, ProgressStyle};
-use hex;
 
 /// Computes hash of a file using the specified algorithm.
 ///
@@ -103,10 +102,7 @@ pub fn hash_file(file_path: &str, algorithm: &str, expected: Option<String>) {
 ///
 /// # Returns
 /// Hex-encoded hash string or I/O error
-fn compute_hash<D: Digest + Default>(
-    file: &mut File,
-    pb: &ProgressBar,
-) -> std::io::Result<String> {
+fn compute_hash<D: Digest + Default>(file: &mut File, pb: &ProgressBar) -> std::io::Result<String> {
     let mut hasher = D::new();
     let mut buffer = [0u8; 64 * 1024]; // 64KB buffer for optimal performance
 
@@ -153,7 +149,10 @@ fn display_results(hash: &str, algorithm: &str, expected: Option<String>) {
         if hash.eq_ignore_ascii_case(&expected_hash) {
             println!("{} Hash matches! File integrity verified.", "✅".green());
         } else {
-            println!("{} Hash mismatch! File may be corrupted or tampered.", "❌".red());
+            println!(
+                "{} Hash mismatch! File may be corrupted or tampered.",
+                "❌".red()
+            );
             println!("Expected: {}", expected_hash);
             println!("Actual:   {}", hash);
         }

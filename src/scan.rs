@@ -7,11 +7,11 @@
 //! This is intentionally single-threaded (or limited concurrency) to keep the
 //! code simple. A future improvement is a worker-pool for speed.
 
-use std::net::{TcpStream, IpAddr};
-use std::time::Duration;
-use dns_lookup::lookup_host;
 use colored::*;
+use dns_lookup::lookup_host;
 use indicatif::{ProgressBar, ProgressStyle};
+use std::net::{IpAddr, TcpStream};
+use std::time::Duration;
 
 /// Performs a TCP port scan against the specified target.
 ///
@@ -51,7 +51,11 @@ pub fn network_scan(target: &str, port_range: &str, timeout_ms: u64) {
         }
     };
 
-    println!("Scanning {} ports with {}ms timeout...\n", ports.len(), timeout_ms);
+    println!(
+        "Scanning {} ports with {}ms timeout...\n",
+        ports.len(),
+        timeout_ms
+    );
 
     // Perform the actual port scan
     let open_ports = scan_ports(&ip, &ports, timeout_ms);
@@ -87,7 +91,7 @@ fn resolve_target(target: &str) -> Option<IpAddr> {
                         eprintln!("\n{} Could not resolve hostname", "❌".red());
                         None
                     }
-                },
+                }
                 Err(e) => {
                     eprintln!("\n{} DNS lookup failed: {}", "❌".red(), e);
                     None
@@ -111,7 +115,6 @@ fn resolve_target(target: &str) -> Option<IpAddr> {
 /// Vector of port numbers or error for invalid specifications
 ///
 /// # Examples
-
 fn parse_port_specification(port_spec: &str) -> Result<Vec<u16>, String> {
     if port_spec.contains("-") {
         // Handle range specification (e.g., "1-1000")
@@ -120,9 +123,11 @@ fn parse_port_specification(port_spec: &str) -> Result<Vec<u16>, String> {
             return Err("Range must be in format 'start-end'".to_string());
         }
 
-        let start = parts[0].parse::<u16>()
+        let start = parts[0]
+            .parse::<u16>()
             .map_err(|_| "Invalid start port number")?;
-        let end = parts[1].parse::<u16>()
+        let end = parts[1]
+            .parse::<u16>()
             .map_err(|_| "Invalid end port number")?;
 
         if start > end {
@@ -132,13 +137,15 @@ fn parse_port_specification(port_spec: &str) -> Result<Vec<u16>, String> {
         Ok((start..=end).collect())
     } else if port_spec.contains(",") {
         // Handle comma-separated list (e.g., "80,443,8080")
-        port_spec.split(",")
+        port_spec
+            .split(",")
             .map(|p| p.trim().parse::<u16>())
             .collect::<Result<Vec<u16>, _>>()
             .map_err(|_| "Invalid port number in list".to_string())
     } else {
         // Handle single port (e.g., "80")
-        port_spec.parse::<u16>()
+        port_spec
+            .parse::<u16>()
             .map(|p| vec![p])
             .map_err(|_| "Invalid port number".to_string())
     }
@@ -172,10 +179,11 @@ fn scan_ports(ip: &IpAddr, ports: &[u16], timeout_ms: u64) -> Vec<u16> {
         if TcpStream::connect_timeout(&addr.parse().unwrap(), timeout).is_ok() {
             open_ports.push(port);
             // Display immediate feedback for open ports
-            pb.println(format!("  {} Port {} - {}",
-                               "✅".green(),
-                               port.to_string().bold(),
-                               get_service_name(port).yellow()
+            pb.println(format!(
+                "  {} Port {} - {}",
+                "✅".green(),
+                port.to_string().bold(),
+                get_service_name(port).yellow()
             ));
         }
     }
@@ -190,9 +198,11 @@ fn scan_ports(ip: &IpAddr, ports: &[u16], timeout_ms: u64) -> Vec<u16> {
 /// remaining and scan rate information.
 fn create_scan_progress_bar(total_ports: usize) -> ProgressBar {
     let pb = ProgressBar::new(total_ports as u64);
-    pb.set_style(ProgressStyle::default_bar()
-        .template("{spinner:.green} [{elapsed_precise}] [{bar:40.cyan/blue}] {pos}/{len} ports")
-        .unwrap());
+    pb.set_style(
+        ProgressStyle::default_bar()
+            .template("{spinner:.green} [{elapsed_precise}] [{bar:40.cyan/blue}] {pos}/{len} ports")
+            .unwrap(),
+    );
     pb
 }
 
@@ -229,7 +239,7 @@ fn get_service_name(port: u16) -> &'static str {
         5900 => "VNC",
         8080 => "HTTP Alternate",
         8443 => "HTTPS Alternate",
-        _ => "Unknown"
+        _ => "Unknown",
     }
 }
 
