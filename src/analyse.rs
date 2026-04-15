@@ -4,10 +4,10 @@
 //! naive type hints based on extension, and an optional content-based sniff
 //! for text/binary.
 
-use std::fs;
-use std::path::Path;
 use colored::*;
 use regex::Regex;
+use std::fs;
+use std::path::Path;
 
 /// analyses a file for basic security-relevant information.
 ///
@@ -89,23 +89,32 @@ fn analyse_content_patterns(content: &str) {
     let sensitive_patterns = vec![
         (r"(?i)(api[_-]?key|apikey)", "API Key"),
         (r"(?i)(secret[_-]?key|secret)", "Secret Key"),
-        (r#"(?i)password\s*=\s*['"]?[^'"]+['"]?"#, "Hardcoded Password"),
+        (
+            r#"(?i)password\s*=\s*['"]?[^'"]+['"]?"#,
+            "Hardcoded Password",
+        ),
         (r"[a-zA-Z0-9+/]{40,}", "Base64 encoded data"),
         (r"(?i)bearer\s+[a-zA-Z0-9\-._~+/]+", "Bearer Token"),
         (r"ssh-rsa\s+[A-Za-z0-9+/]+", "SSH Key"),
         (r"-----BEGIN\s+(RSA\s+)?PRIVATE\s+KEY-----", "Private Key"),
         (r"-----BEGIN\s+CERTIFICATE-----", "X.509 Certificate"),
-        (r"(?i)(postgres|mysql|mongodb)://", "Database Connection String"),
+        (
+            r"(?i)(postgres|mysql|mongodb)://",
+            "Database Connection String",
+        ),
         (r"(?i)aws_access_key_id", "AWS Access Key"),
     ];
 
     let mut found_issues = false;
-    
+
     for (pattern, description) in sensitive_patterns {
         let re = match Regex::new(pattern) {
             Ok(regex) => regex,
             Err(e) => {
-                eprintln!("Warning: Failed to compile pattern for {}: {}", description, e);
+                eprintln!(
+                    "Warning: Failed to compile pattern for {}: {}",
+                    description, e
+                );
                 continue;
             }
         };
@@ -113,13 +122,13 @@ fn analyse_content_patterns(content: &str) {
         if re.is_match(content) {
             println!("  ⚠️  Potential {} detected", description.yellow());
             found_issues = true;
-            
+
             // For debugging, show context (first 50 chars of matches)
-            if let Some(captures) = re.captures(content) {
-                if let Some(matched) = captures.get(0) {
-                    let preview = &matched.as_str()[..matched.as_str().len().min(50)];
-                    println!("     Context: {}...", preview.dimmed());
-                }
+            if let Some(captures) = re.captures(content)
+                && let Some(matched) = captures.get(0)
+            {
+                let preview = &matched.as_str()[..matched.as_str().len().min(50)];
+                println!("     Context: {}...", preview.dimmed());
             }
         }
     }
@@ -144,7 +153,10 @@ fn check_suspicious_patterns(content: &str, found_issues: &mut bool) {
 
     for line in lines {
         if line.len() > 50 && calculate_entropy(line) > 4.5 {
-            println!("  ⚠️  {}", "High-entropy string (possible encrypted data)".yellow());
+            println!(
+                "  ⚠️  {}",
+                "High-entropy string (possible encrypted data)".yellow()
+            );
             *found_issues = true;
             break; // Only report once
         }
@@ -154,14 +166,20 @@ fn check_suspicious_patterns(content: &str, found_issues: &mut bool) {
     let suspicious_ops = vec![
         (r"(?i)rm\s+-rf\s+/", "Dangerous file deletion command"),
         (r"(?i)chmod\s+777", "Overly permissive file permissions"),
-        (r"(?i)sudo\s+.*\s+--no-password", "Password-less sudo configuration"),
-        (r"(?i)curl\s+.*\|\s*sh", "Pipe-to-shell pattern (potential security risk)"),
+        (
+            r"(?i)sudo\s+.*\s+--no-password",
+            "Password-less sudo configuration",
+        ),
+        (
+            r"(?i)curl\s+.*\|\s*sh",
+            "Pipe-to-shell pattern (potential security risk)",
+        ),
     ];
 
     for (pattern, description) in suspicious_ops {
         let re = match Regex::new(pattern) {
             Ok(regex) => regex,
-            Err(_) => continue,  // Skip invalid patterns silently
+            Err(_) => continue, // Skip invalid patterns silently
         };
 
         if re.is_match(content) {
@@ -184,13 +202,13 @@ fn analyse_binary_file(path: &Path) {
         match ext.as_str() {
             "exe" | "dll" | "so" | "dylib" => {
                 println!("  ⚠️  {}", "Executable binary file".yellow());
-            },
+            }
             "key" | "pem" | "p12" | "pfx" => {
                 println!("  ⚠️  {}", "Cryptographic key file".yellow());
-            },
+            }
             "zip" | "tar" | "gz" | "7z" => {
                 println!("  ℹ️  Compressed archive (contents not analysed)");
-            },
+            }
             _ => {
                 println!("  ℹ️  Binary file type: {}", ext);
             }
@@ -211,8 +229,12 @@ fn identify_file_type(file_path: &str) -> String {
         let ext = extension.to_string_lossy().to_lowercase();
         match ext.as_str() {
             "txt" | "log" => "Text file".to_string(),
-            "json" | "xml" | "yaml" | "yml" => format!("Configuration file ({})", ext.to_uppercase()),
-            "py" | "js" | "rs" | "c" | "cpp" | "java" => format!("Source code ({})", ext.to_uppercase()),
+            "json" | "xml" | "yaml" | "yml" => {
+                format!("Configuration file ({})", ext.to_uppercase())
+            }
+            "py" | "js" | "rs" | "c" | "cpp" | "java" => {
+                format!("Source code ({})", ext.to_uppercase())
+            }
             "sh" | "bat" | "ps1" => "Script file".to_string(),
             "key" | "pem" | "crt" | "cer" => "Cryptographic file".to_string(),
             "exe" | "dll" | "so" => "Executable binary".to_string(),
@@ -243,7 +265,8 @@ fn calculate_entropy(text: &str) -> f64 {
     }
 
     // Calculate Shannon entropy
-    char_counts.values()
+    char_counts
+        .values()
         .map(|&count| {
             let p = count as f64 / len;
             -p * p.log2()
@@ -297,7 +320,10 @@ mod tests {
     #[test]
     fn test_identify_file_type() {
         assert_eq!(identify_file_type("test.txt"), "Text file");
-        assert_eq!(identify_file_type("config.json"), "Configuration file (JSON)");
+        assert_eq!(
+            identify_file_type("config.json"),
+            "Configuration file (JSON)"
+        );
         assert_eq!(identify_file_type("script.sh"), "Script file");
         assert_eq!(identify_file_type("key.pem"), "Cryptographic file");
         assert_eq!(identify_file_type("no_extension"), "Unknown (no extension)");

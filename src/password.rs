@@ -9,8 +9,8 @@
 //! want that, wire up `zxcvbn` or `zxcvbn-rs` in the future.
 
 use colored::*;
+use rand::RngExt;
 use regex::Regex;
-use rand::Rng;
 
 /// Evaluates a password against transparent rules and returns a detailed analysis.
 ///
@@ -132,10 +132,19 @@ fn analyse_character_classes(password: &str) {
     let has_special = password.chars().any(|c| !c.is_alphanumeric());
 
     println!("\n{}", "Character Types:".bold());
-    println!("  {} Lowercase letters", if has_lower { "✅" } else { "❌" });
-    println!("  {} Uppercase letters", if has_upper { "✅" } else { "❌" });
-    println!("  {} Numbers",           if has_digit { "✅" } else { "❌" });
-    println!("  {} Special characters", if has_special { "✅" } else { "❌" });
+    println!(
+        "  {} Lowercase letters",
+        if has_lower { "✅" } else { "❌" }
+    );
+    println!(
+        "  {} Uppercase letters",
+        if has_upper { "✅" } else { "❌" }
+    );
+    println!("  {} Numbers", if has_digit { "✅" } else { "❌" });
+    println!(
+        "  {} Special characters",
+        if has_special { "✅" } else { "❌" }
+    );
 }
 
 /// Detects common weak patterns that reduce password security.
@@ -158,8 +167,14 @@ fn analyse_patterns(password: &str) {
     let weak_patterns: &[(&str, &str)] = &[
         (r"^[0-9]+$", "Only numbers"),
         (r"^[a-zA-Z]+$", "Only letters"),
-        (r"(?i)(password|admin|123456|qwerty|letmein)", "Common password"),
-        (r"(012|123|234|345|456|567|678|789|890|abc|bcd|cde|def)", "Sequential characters"),
+        (
+            r"(?i)(password|admin|123456|qwerty|letmein)",
+            "Common password",
+        ),
+        (
+            r"(012|123|234|345|456|567|678|789|890|abc|bcd|cde|def)",
+            "Sequential characters",
+        ),
     ];
 
     // Check each pattern
@@ -186,7 +201,10 @@ fn analyse_patterns(password: &str) {
 /// This is a simple but effective check for obviously weak patterns
 /// like "aaa" or "111" that significantly reduce password entropy.
 fn has_repeated_chars(password: &str) -> bool {
-    password.as_bytes().windows(3).any(|w| w[0] == w[1] && w[1] == w[2])
+    password
+        .as_bytes()
+        .windows(3)
+        .any(|w| w[0] == w[1] && w[1] == w[2])
 }
 
 /// Displays overall password strength assessment using zxcvbn scoring.
@@ -232,12 +250,18 @@ fn display_crack_times(entropy: &zxcvbn::Entropy) {
     println!("\n{}", "Time to Crack:".bold());
     let ct = entropy.crack_times();
 
-    println!("  Online (10/s):   ~{}",
-             humanise_duration(crack_secs(ct.online_no_throttling_10_per_second())));
-    println!("  Offline (1e4/s): ~{}",
-             humanise_duration(crack_secs(ct.offline_slow_hashing_1e4_per_second())));
-    println!("  Offline (1e10/s): ~{}",
-             humanise_duration(crack_secs(ct.offline_fast_hashing_1e10_per_second())));
+    println!(
+        "  Online (10/s):   ~{}",
+        humanise_duration(crack_secs(ct.online_no_throttling_10_per_second()))
+    );
+    println!(
+        "  Offline (1e4/s): ~{}",
+        humanise_duration(crack_secs(ct.offline_slow_hashing_1e4_per_second()))
+    );
+    println!(
+        "  Offline (1e10/s): ~{}",
+        humanise_duration(crack_secs(ct.offline_fast_hashing_1e10_per_second()))
+    );
 }
 
 /// Converts zxcvbn's CrackTimeSeconds to f64 for duration calculations.

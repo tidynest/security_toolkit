@@ -13,16 +13,16 @@
 use clap::{Parser, Subcommand};
 
 // Import of custom made modules
-mod password;
-mod hash;
-mod scan;
 mod analyse;
+mod hash;
+mod password;
+mod scan;
 
 // Use the functions from our modules
-use password::{check_password_strength, generate_password};
-use hash::hash_file;
-use scan::network_scan;
 use analyse::analyse_file;
+use hash::hash_file;
+use password::{check_password_strength, generate_password};
+use scan::network_scan;
 
 /// Command-line arguments and subcommands.
 ///
@@ -110,7 +110,11 @@ fn main() {
     let cli = Cli::parse();
 
     match cli.command {
-        Commands::Password { check, generate, length } => {
+        Commands::Password {
+            check,
+            generate,
+            length,
+        } => {
             if generate {
                 generate_password(length);
             } else if let Some(password) = check {
@@ -130,11 +134,19 @@ fn main() {
             }
         }
 
-        Commands::Hash { file, algorithm, compare } => {
+        Commands::Hash {
+            file,
+            algorithm,
+            compare,
+        } => {
             hash_file(&file, &algorithm, compare);
         }
 
-        Commands::Scan { target, ports, timeout } => {
+        Commands::Scan {
+            target,
+            ports,
+            timeout,
+        } => {
             network_scan(&target, &ports, timeout);
         }
 
